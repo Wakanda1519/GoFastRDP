@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GoFastRDP</title>
+  <link rel="stylesheet" href="/dist/styles.css" />
+</head>
+<body class="h-full">
+  <!-- Startup preloader: visible until the connection list is rendered. -->
+  <div id="preloader" class="preloader" role="status" aria-live="polite">
+    <div class="flex items-center gap-3">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-6 w-6">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+      </div>
+      <div class="leading-tight">
+        <div class="text-xl font-semibold text-white">GoFastRDP</div>
+        <div class="text-xs text-slate-400">Удаленные рабочие столы</div>
+      </div>
+    </div>
+    <div class="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-700 border-t-brand-500"></div>
+    <div class="text-sm text-slate-400">Загрузка подключений…</div>
+  </div>
+
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="flex w-80 shrink-0 flex-col bg-slate-900 text-slate-200">
+      <div class="flex items-center gap-3 border-b border-slate-800 px-5 py-4">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white shadow-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+        </div>
+        <div class="leading-tight">
+          <div class="text-sm font-semibold text-white">GoFastRDP</div>
+          <div class="text-[11px] text-slate-400">Удаленные рабочие столы</div>
+        </div>
+      </div>
+
+      <div class="px-4 py-3">
+        <input
+          id="search"
+          type="search"
+          placeholder="Поиск по группе, адресу или профилю"
+          class="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
+        />
+        <button id="btn-new-host" class="btn-primary mt-3 w-full">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Новая группа
+        </button>
+      </div>
+
+      <div id="list" class="flex-1 space-y-2 overflow-y-auto px-2 pb-4"></div>
+
+      <div class="border-t border-slate-800 px-4 py-3">
+        <button
+          id="btn-storage"
+          type="button"
+          class="inline-flex w-full items-center gap-2 rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-left text-xs font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 shrink-0">
+            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+          <span class="truncate">Локальное хранилище</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex flex-1 flex-col bg-slate-100">
+      <header class="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
+        <div class="min-w-0">
+          <h1 id="detail-name" class="truncate text-lg font-semibold text-slate-900">Панель подключений</h1>
+          <p id="detail-sub" class="truncate text-sm text-slate-500">Создайте группу с адресом и параметрами сеанса</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-2">
+          <button id="btn-delete" class="btn-danger hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+            </svg>
+            Удалить
+          </button>
+          <button id="btn-save" class="btn-ghost hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+              <path d="M5 3h14v18l-7-5-7 5z" />
+            </svg>
+            Сохранить
+          </button>
+          <button id="btn-connect" class="btn-primary hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+            Подключить
+          </button>
+        </div>
+      </header>
+
+      <!-- Empty state -->
+      <div id="empty" class="flex flex-1 items-center justify-center p-8">
+        <div class="max-w-md text-center">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-brand-600 shadow-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-8 w-8">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+          </div>
+          <h2 class="text-base font-semibold text-slate-800">Групп пока нет</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Создайте группу с адресом и общими параметрами сеанса, затем добавьте
+            в нее профили с именами пользователей и паролями.
+          </p>
+          <button id="btn-empty-new" class="btn-primary mt-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Создать группу
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <section id="editor" class="hidden flex-1 overflow-y-auto px-6 py-6">
+        <form id="form" class="mx-auto max-w-3xl space-y-6" autocomplete="off">
+          <div id="host-card" class="hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Группа</h2>
+            <p class="mb-4 text-xs text-slate-500">
+              Одна группа — один адрес и общие параметры сеанса. Профили внутри
+              группы хранят только учетные данные.
+            </p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="md:col-span-2">
+                <label class="field-label" for="f-host-name">Название группы</label>
+                <input id="f-host-name" class="field-input" placeholder="Например: Офисный сервер, 1С" />
+              </div>
+              <div>
+                <label class="field-label" for="f-host">Адрес (IP или имя)</label>
+                <input id="f-host" class="field-input" placeholder="192.168.1.10" />
+              </div>
+              <div>
+                <label class="field-label" for="f-port">Порт</label>
+                <input id="f-port" type="number" min="1" max="65535" class="field-input" placeholder="3389" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="field-label" for="f-notes">Заметки</label>
+                <textarea id="f-notes" rows="2" class="field-input" placeholder="Дополнительная информация о группе"></textarea>
+              </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+              <button type="button" id="btn-add-profile" class="btn-ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Добавить профиль
+              </button>
+            </div>
+          </div>
+
+          <div id="session-card" class="hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Параметры сеанса</h2>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label class="field-label" for="f-width">Ширина окна</label>
+                <input id="f-width" type="number" min="640" max="7680" class="field-input" placeholder="1920" />
+              </div>
+              <div>
+                <label class="field-label" for="f-height">Высота окна</label>
+                <input id="f-height" type="number" min="480" max="4320" class="field-input" placeholder="1080" />
+              </div>
+              <div>
+                <label class="field-label" for="f-audio">Звук</label>
+                <select id="f-audio" class="field-input">
+                  <option value="0">Воспроизводить на этом компьютере</option>
+                  <option value="1">Воспроизводить на удаленном компьютере</option>
+                  <option value="2">Не воспроизводить</option>
+                </select>
+              </div>
+              <div class="flex flex-col justify-end gap-3 pt-1">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input id="f-fullscreen" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                  Полноэкранный режим
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input id="f-multimon" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                  Использовать все мониторы
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input id="f-clipboard" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                  Общий буфер обмена
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="profile-card" class="hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Профиль</h2>
+              <button type="button" id="btn-edit-host" class="text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                Настройки группы
+              </button>
+            </div>
+            <p id="profile-host-info" class="mb-4 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600"></p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="md:col-span-2">
+                <label class="field-label" for="f-name">Название профиля</label>
+                <input id="f-name" class="field-input" placeholder="Например: Администратор, Иванов" />
+              </div>
+              <div>
+                <label class="field-label" for="f-username">Пользователь</label>
+                <input id="f-username" class="field-input" placeholder="Administrator" />
+              </div>
+              <div>
+                <label class="field-label" for="f-domain">Домен</label>
+                <input id="f-domain" class="field-input" placeholder="Необязательно" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="field-label" for="f-password">Пароль</label>
+                <div class="flex gap-2">
+                  <input id="f-password" type="password" class="field-input" placeholder="Оставьте пустым, чтобы не менять" />
+                  <button type="button" id="btn-show-pass" class="btn-ghost px-3" title="Показать пароль">Показать</button>
+                  <button type="button" id="btn-clear-pass" class="btn-ghost px-3" title="Удалить сохраненный пароль">Сбросить</button>
+                </div>
+                <p id="pass-hint" class="mt-1 text-xs text-slate-500"></p>
+              </div>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">
+              Адрес и параметры сеанса задаются в группе.
+            </p>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="toasts" class="fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
