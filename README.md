@@ -5,7 +5,7 @@
 ![Go](https://img.shields.io/badge/Go-1.26%2B-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%2B-0078D6?style=flat-square&logo=windows&logoColor=white)
 
-<img width="1256" height="839" alt="GoFastRDP" src="docs/screenshot.png" />
+<img width="1256" height="839" alt="screenshot" src="https://github.com/user-attachments/assets/bce9f8b8-6c22-4df8-856c-b7fb2043ff40" />
 
 ## Почему GoFastRDP
 
