@@ -1,6 +1,6 @@
 # 🖥️ GoFastRDP
 
-**Windows-клиент для хранения RDP-подключений и запуска сеансов в один клик: группы адресов, профили с паролями в DPAPI, генерация `.rdp` и запуск `mstsc.exe` — всё в одном exe без установки**
+**Windows-клиент для хранения RDP-подключений и запуска сеансов в один клик: группы адресов, профили с паролями в DPAPI, генерация `.rdp` и запуск `mstsc.exe` — всё в одном exe бинарнике**
 
 ![Go](https://img.shields.io/badge/Go-1.26%2B-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%2B-0078D6?style=flat-square&logo=windows&logoColor=white)
